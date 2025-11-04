@@ -1,0 +1,96 @@
+﻿@model PersonalLibraryManager.Models.Book
+
+@{
+    ViewBag.Title = "Book Details";
+}
+
+<h2>
+    <span class="glyphicon glyphicon-book"></span> @Model.Title
+</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <dl class="dl-horizontal">
+            <dt>@Html.DisplayNameFor(model => model.Author)</dt>
+            <dd>@Html.DisplayFor(model => model.Author)</dd>
+
+            @if (!string.IsNullOrEmpty(Model.ISBN))
+            {
+                <dt>@Html.DisplayNameFor(model => model.ISBN)</dt>
+                <dd>@Html.DisplayFor(model => model.ISBN)</dd>
+            }
+
+            <dt>Reading Status</dt>
+            <dd>
+                @switch (Model.Status)
+                {
+                    case PersonalLibraryManager.Models.ReadingStatus.ToRead:
+                        <span class="label label-info">To Read</span>
+                        break;
+                    case PersonalLibraryManager.Models.ReadingStatus.Reading:
+                        <span class="label label-warning">Currently Reading</span>
+                        break;
+                    case PersonalLibraryManager.Models.ReadingStatus.Completed:
+                        <span class="label label-success">Completed</span>
+                        break;
+                }
+            </dd>
+
+            @if (Model.Rating.HasValue)
+            {
+                <dt>@Html.DisplayNameFor(model => model.Rating)</dt>
+                <dd>
+                    @for (int i = 0; i < Model.Rating.Value; i++)
+                    {
+                        <span class="glyphicon glyphicon-star" style="color: gold;"></span>
+                    }
+                    <span class="text-muted">(@Model.Rating.Value out of 5)</span>
+                </dd>
+            }
+
+            <dt>Date Added</dt>
+            <dd>@Model.DateAdded.ToString("MMMM dd, yyyy")</dd>
+
+            @if (Model.DateCompleted.HasValue)
+            {
+                <dt>Date Completed</dt>
+                <dd>@Model.DateCompleted.Value.ToString("MMMM dd, yyyy")</dd>
+            }
+        </dl>
+
+        @if (!string.IsNullOrEmpty(Model.Review))
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">My Review</h4>
+                </div>
+                <div class="panel-body">
+                    @Html.Raw(Model.Review.Replace("\n", "<br />"))
+                </div>
+            </div>
+        }
+
+        <div class="btn-group" role="group">
+            @Html.ActionLink("Edit", "Edit", new { id = Model.Id }, new { @class = "btn btn-default" })
+            @Html.ActionLink("Delete", "Delete", new { id = Model.Id }, new { @class = "btn btn-danger" })
+            @Html.ActionLink("Back to Library", "Index", null, new { @class = "btn btn-primary" })
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h4 class="panel-title">Book Information</h4>
+            </div>
+            <div class="panel-body">
+                <p><strong>Title:</strong> @Model.Title</p>
+                <p><strong>Author:</strong> @Model.Author</p>
+                @if (Model.Status == PersonalLibraryManager.Models.ReadingStatus.Completed && Model.DateAdded != null && Model.DateCompleted != null)
+                {
+                    var daysToComplete = (Model.DateCompleted.Value - Model.DateAdded).Days;
+                    <p><strong>Time to Complete:</strong> @daysToComplete days</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

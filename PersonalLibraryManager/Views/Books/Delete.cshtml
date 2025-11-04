@@ -1,0 +1,70 @@
+﻿@model PersonalLibraryManager.Models.Book
+
+@{
+    ViewBag.Title = "Delete Book";
+}
+
+<h2>Delete Book</h2>
+
+<div class="alert alert-danger">
+    <h3>Are you sure you want to delete this book?</h3>
+    <p>This action cannot be undone.</p>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4>Book Details</h4>
+    </div>
+    <div class="panel-body">
+        <dl class="dl-horizontal">
+            <dt>Title:</dt>
+            <dd>@Model.Title</dd>
+
+            <dt>Author:</dt>
+            <dd>@Model.Author</dd>
+
+            <dt>Status:</dt>
+            <dd>
+                @switch (Model.Status)
+                {
+                    case PersonalLibraryManager.Models.ReadingStatus.ToRead:
+                        <span class="label label-info">To Read</span>
+                        break;
+                    case PersonalLibraryManager.Models.ReadingStatus.Reading:
+                        <span class="label label-warning">Reading</span>
+                        break;
+                    case PersonalLibraryManager.Models.ReadingStatus.Completed:
+                        <span class="label label-success">Completed</span>
+                        break;
+                }
+            </dd>
+
+            @if (Model.Rating.HasValue)
+            {
+                <dt>Rating:</dt>
+                <dd>
+                    @for (int i = 0; i < Model.Rating.Value; i++)
+                    {
+                        <span class="glyphicon glyphicon-star" style="color: gold;"></span>
+                    }
+                </dd>
+            }
+
+            <dt>Date Added:</dt>
+            <dd>@Model.DateAdded.ToString("MMMM dd, yyyy")</dd>
+        </dl>
+    </div>
+</div>
+
+@using (Html.BeginForm("Delete", "Books", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-danger">
+            <span class="glyphicon glyphicon-trash"></span> Yes, Delete This Book
+        </button>
+        @Html.ActionLink("Cancel", "Index", null, new { @class = "btn btn-default" })
+    </div>
+}
