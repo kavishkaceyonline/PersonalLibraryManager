@@ -64,13 +64,28 @@ namespace PersonalLibraryManager.Controllers
                 : "";
 
             var userId = User.Identity.GetUserId();
+
+            // Get user with books
+            var db = new ApplicationDbContext();
+            var user = db.Users.Find(userId);
+            var totalBooks = db.Books.Count(b => b.UserId == userId);
+            var booksCompleted = db.Books.Count(b => b.UserId == userId && b.Status == ReadingStatus.Completed);
+
             var model = new IndexViewModel
             {
                 HasPassword = HasPassword(),
                 PhoneNumber = await UserManager.GetPhoneNumberAsync(userId),
                 TwoFactor = await UserManager.GetTwoFactorEnabledAsync(userId),
                 Logins = await UserManager.GetLoginsAsync(userId),
-                BrowserRemembered = await AuthenticationManager.TwoFactorBrowserRememberedAsync(userId)
+                BrowserRemembered = await AuthenticationManager.TwoFactorBrowserRememberedAsync(userId),
+
+                // Add user data
+                FullName = user.FullName,
+                Email = user.Email,
+                DateRegistered = user.DateRegistered,
+                TotalBooks = totalBooks,
+                BooksCompleted = booksCompleted
+
             };
             return View(model);
         }

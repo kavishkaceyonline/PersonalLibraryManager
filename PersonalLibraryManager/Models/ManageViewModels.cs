@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNet.Identity;
+﻿using Microsoft.AspNet.Identity;
 using Microsoft.Owin.Security;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace PersonalLibraryManager.Models
 {
@@ -12,6 +13,13 @@ namespace PersonalLibraryManager.Models
         public string PhoneNumber { get; set; }
         public bool TwoFactor { get; set; }
         public bool BrowserRemembered { get; set; }
+
+
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public DateTime DateRegistered { get; set; }
+        public int TotalBooks { get; set; }
+        public int BooksCompleted { get; set; }
     }
 
     public class ManageLoginsViewModel
