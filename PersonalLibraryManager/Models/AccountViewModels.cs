@@ -65,6 +65,11 @@ namespace PersonalLibraryManager.Models
     public class RegisterViewModel
     {
         [Required]
+        [Display(Name = "Full Name")]
+        [StringLength(100)]
+        public string FullName { get; set; }
+
+        [Required]
         [EmailAddress]
         [Display(Name = "Email")]
         public string Email { get; set; }
