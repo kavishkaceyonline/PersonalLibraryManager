@@ -281,6 +281,7 @@
     <Content Include="Views\Books\BookForm.cshtml" />
     <Content Include="Views\Books\Details.cshtml" />
     <Content Include="Views\Books\Delete.cshtml" />
+    <Content Include="Views\Books\Dashboard.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

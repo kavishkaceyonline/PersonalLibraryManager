@@ -1,0 +1,130 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+}
+
+<h2>
+    <span class="glyphicon glyphicon-stats"></span> Reading Dashboard
+</h2>
+
+<div class="row">
+    <!-- Overall Statistics -->
+    <div class="col-md-8">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">Library Overview</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-3 text-center">
+                        <h2 class="text-primary">@ViewBag.TotalBooks</h2>
+                        <p>Total Books</p>
+                    </div>
+                    <div class="col-sm-3 text-center">
+                        <h2 class="text-info">@ViewBag.ToReadCount</h2>
+                        <p>To Read</p>
+                    </div>
+                    <div class="col-sm-3 text-center">
+                        <h2 class="text-warning">@ViewBag.ReadingCount</h2>
+                        <p>Reading</p>
+                    </div>
+                    <div class="col-sm-3 text-center">
+                        <h2 class="text-success">@ViewBag.CompletedCount</h2>
+                        <p>Completed</p>
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- Progress Bar -->
+                <h4>Reading Progress</h4>
+                @if (ViewBag.TotalBooks > 0)
+                {
+                    var percentage = (ViewBag.CompletedCount * 100) / ViewBag.TotalBooks;
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-success" style="width: @percentage%">
+                            @percentage% Complete
+                        </div>
+                    </div>
+                    <p class="text-muted">
+                        You've completed @ViewBag.CompletedCount out of @ViewBag.TotalBooks books
+                    </p>
+                }
+                else
+                {
+                    <p class="text-muted">No books in your library yet. Start adding books to see your progress!</p>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Recently Added Books</h3>
+            </div>
+            <div class="panel-body">
+                @if (ViewBag.RecentBooks != null && ((List<PersonalLibraryManager.Models.Book>)ViewBag.RecentBooks).Any())
+                {
+                    <ul class="list-unstyled">
+                        @foreach (var book in (List<PersonalLibraryManager.Models.Book>)ViewBag.RecentBooks)
+                        {
+                            <li style="margin-bottom: 10px;">
+                                <strong>@book.Title</strong> by @book.Author
+                                <br />
+                                <small class="text-muted">Added @book.DateAdded.ToString("MMM dd, yyyy")</small>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted">No recent activity</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-md-4">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">Quick Actions</h3>
+            </div>
+            <div class="panel-body">
+                <p>@Html.ActionLink("Add New Book", "Create", null, new { @class = "btn btn-primary btn-block" })</p>
+                <p>@Html.ActionLink("View My Library", "Index", null, new { @class = "btn btn-default btn-block" })</p>
+                <p>@Html.ActionLink("Books To Read", "Index", new { status = "ToRead" }, new { @class = "btn btn-info btn-block" })</p>
+                <p>@Html.ActionLink("Currently Reading", "Index", new { status = "Reading" }, new { @class = "btn btn-warning btn-block" })</p>
+                <p>@Html.ActionLink("Completed Books", "Index", new { status = "Completed" }, new { @class = "btn btn-success btn-block" })</p>
+            </div>
+        </div>
+
+        <!-- Top Rated Books -->
+        <div class="panel panel-warning">
+            <div class="panel-heading">
+                <h3 class="panel-title">Top Rated Books</h3>
+            </div>
+            <div class="panel-body">
+                @if (ViewBag.TopRatedBooks != null && ((List<PersonalLibraryManager.Models.Book>)ViewBag.TopRatedBooks).Any())
+                {
+                    <ul class="list-unstyled">
+                        @foreach (var book in (List<PersonalLibraryManager.Models.Book>)ViewBag.TopRatedBooks)
+                        {
+                            <li style="margin-bottom: 10px;">
+                                <strong>@book.Title</strong>
+                                <br />
+                                @for (int i = 0; i < book.Rating.Value; i++)
+                                {
+                                    <span class="glyphicon glyphicon-star" style="color: gold;"></span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted">No rated books yet</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

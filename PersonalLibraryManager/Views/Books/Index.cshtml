@@ -1,15 +1,86 @@
 ﻿@model IEnumerable<PersonalLibraryManager.Models.Book>
+
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "My Library";
+    var currentFilter = ViewBag.CurrentFilter as string;
 }
 
 <h2>
     <span class="glyphicon glyphicon-book"></span> My Library
 </h2>
 
-<p>
-    @Html.ActionLink("Add New Book", "Create", null, new { @class = "btn btn-primary" })
-</p>
+<!-- Statistics Cards -->
+<div class="row" style="margin-bottom: 20px;">
+    <div class="col-md-3">
+        <div class="panel panel-primary">
+            <div class="panel-body text-center">
+                <h3>@ViewBag.TotalBooks</h3>
+                <p>Total Books</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-info">
+            <div class="panel-body text-center">
+                <h3>@ViewBag.ToReadCount</h3>
+                <p>To Read</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-warning">
+            <div class="panel-body text-center">
+                <h3>@ViewBag.ReadingCount</h3>
+                <p>Currently Reading</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-success">
+            <div class="panel-body text-center">
+                <h3>@ViewBag.CompletedCount</h3>
+                <p>Completed</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Box -->
+<div class="row" style="margin-bottom: 20px;">
+    <div class="col-md-12">
+        @using (Html.BeginForm("Index", "Books", FormMethod.Get, new { @class = "form-inline" }))
+        {
+            <div class="form-group">
+                <input type="text" name="search" class="form-control" placeholder="Search by title or author..." value="@ViewBag.CurrentSearch" style="width: 300px;" />
+            </div>
+            <button type="submit" class="btn btn-default">
+                <span class="glyphicon glyphicon-search"></span> Search
+            </button>
+            if (!string.IsNullOrEmpty(ViewBag.CurrentSearch as string))
+            {
+                @Html.ActionLink("Clear Search", "Index", null, new { @class = "btn btn-link" })
+            }
+            <input type="hidden" name="status" value="@ViewBag.CurrentFilter" />
+        }
+    </div>
+</div>
+
+<!-- Action Buttons and Filters -->
+<div class="row" style="margin-bottom: 20px;">
+    <div class="col-md-6">
+        <p>
+            @Html.ActionLink("Add New Book", "Create", null, new { @class = "btn btn-primary" })
+        </p>
+    </div>
+    <div class="col-md-6 text-right">
+        <div class="btn-group" role="group">
+            @Html.ActionLink("All", "Index", new { status = "" }, new { @class = currentFilter == "" ? "btn btn-primary" : "btn btn-default" })
+            @Html.ActionLink("To Read", "Index", new { status = "ToRead" }, new { @class = currentFilter == "ToRead" ? "btn btn-info" : "btn btn-default" })
+            @Html.ActionLink("Reading", "Index", new { status = "Reading" }, new { @class = currentFilter == "Reading" ? "btn btn-warning" : "btn btn-default" })
+            @Html.ActionLink("Completed", "Index", new { status = "Completed" }, new { @class = currentFilter == "Completed" ? "btn btn-success" : "btn btn-default" })
+        </div>
+    </div>
+</div>
 
 @if (Model.Any())
 {
@@ -22,28 +93,54 @@
                     <th>Status</th>
                     <th>Rating</th>
                     <th>Date Added</th>
-                    <th></th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var book in Model)
                 {
                     <tr>
-                        <td>@book.Title</td>
+                        <td>
+                            <strong>@book.Title</strong>
+                            @if (!string.IsNullOrEmpty(book.ISBN))
+                            {
+                                <br />
+                                <small class="text-muted">ISBN: @book.ISBN</small>
+                            }
+                        </td>
                         <td>@book.Author</td>
                         <td>
-                            @switch (book.Status)
-                            {
-                                case PersonalLibraryManager.Models.ReadingStatus.ToRead:
-                                    <span class="label label-info">To Read</span>
-                                    break;
-                                case PersonalLibraryManager.Models.ReadingStatus.Reading:
-                                    <span class="label label-warning">Reading</span>
-                                    break;
-                                case PersonalLibraryManager.Models.ReadingStatus.Completed:
-                                    <span class="label label-success">Completed</span>
-                                    break;
-                            }
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-xs dropdown-toggle @GetStatusButtonClass(book.Status)" data-toggle="dropdown">
+                                    @GetStatusText(book.Status) <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @if (book.Status != PersonalLibraryManager.Models.ReadingStatus.ToRead)
+                                    {
+                                        <li>
+                                            <a href="#" onclick="updateStatus(@book.Id, @((int)PersonalLibraryManager.Models.ReadingStatus.ToRead)); return false;">
+                                                To Read
+                                            </a>
+                                        </li>
+                                    }
+                                    @if (book.Status != PersonalLibraryManager.Models.ReadingStatus.Reading)
+                                    {
+                                        <li>
+                                            <a href="#" onclick="updateStatus(@book.Id, @((int)PersonalLibraryManager.Models.ReadingStatus.Reading)); return false;">
+                                                Reading
+                                            </a>
+                                        </li>
+                                    }
+                                    @if (book.Status != PersonalLibraryManager.Models.ReadingStatus.Completed)
+                                    {
+                                        <li>
+                                            <a href="#" onclick="updateStatus(@book.Id, @((int)PersonalLibraryManager.Models.ReadingStatus.Completed)); return false;">
+                                                Completed
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
                         </td>
                         <td>
                             @if (book.Rating.HasValue)
@@ -58,11 +155,23 @@
                                 <span class="text-muted">Not rated</span>
                             }
                         </td>
-                        <td>@book.DateAdded.ToString("MMM dd, yyyy")</td>
                         <td>
-                            @Html.ActionLink("Edit", "Edit", new { id = book.Id }, new { @class = "btn btn-sm btn-default" })
-                            @Html.ActionLink("Details", "Details", new { id = book.Id }, new { @class = "btn btn-sm btn-info" })
-                            @Html.ActionLink("Delete", "Delete", new { id = book.Id }, new { @class = "btn btn-sm btn-danger" })
+                            @book.DateAdded.ToString("MMM dd, yyyy")
+                            @if (book.DateCompleted.HasValue)
+                            {
+                                <br />
+                                <small class="text-success">
+                                    <span class="glyphicon glyphicon-ok"></span>
+                                    Completed: @book.DateCompleted.Value.ToString("MMM dd, yyyy")
+                                </small>
+                            }
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-xs" role="group">
+                                @Html.ActionLink("Details", "Details", new { id = book.Id }, new { @class = "btn btn-info", title = "View Details" })
+                                @Html.ActionLink("Edit", "Edit", new { id = book.Id }, new { @class = "btn btn-default", title = "Edit Book" })
+                                @Html.ActionLink("Delete", "Delete", new { id = book.Id }, new { @class = "btn btn-danger", title = "Delete Book" })
+                            </div>
                         </td>
                     </tr>
                 }
@@ -72,10 +181,72 @@
 }
 else
 {
-    <div class="alert alert-info">
-        <h4>Your library is empty!</h4>
-        <p>Start building your personal library by adding your first book.</p>
-        <p>@Html.ActionLink("Add Your First Book", "Create", null, new { @class = "btn btn-primary" })</p>
-    </div>
+    if (!string.IsNullOrEmpty(currentFilter))
+    {
+        <div class="alert alert-info">
+            <h4>No books found with status: @currentFilter</h4>
+            <p>@Html.ActionLink("View all books", "Index", new { status = "" })</p>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h4>Your library is empty!</h4>
+            <p>Start building your personal library by adding your first book.</p>
+            <p>@Html.ActionLink("Add Your First Book", "Create", null, new { @class = "btn btn-primary" })</p>
+        </div>
+    }
 }
 
+<!-- Hidden form for status updates -->
+<form id="statusUpdateForm" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="bookId" name="id" />
+    <input type="hidden" id="newStatus" name="status" />
+</form>
+
+@section Scripts {
+    <script>
+        function updateStatus(bookId, status) {
+            if (confirm('Update book status?')) {
+                var form = $('#statusUpdateForm');
+                form.attr('action', '@Url.Action("UpdateStatus", "Books")');
+                $('#bookId').val(bookId);
+                $('#newStatus').val(status);
+                form.submit();
+            }
+        }
+    </script>
+}
+
+@functions {
+    string GetStatusText(PersonalLibraryManager.Models.ReadingStatus status)
+    {
+        switch (status)
+        {
+            case PersonalLibraryManager.Models.ReadingStatus.ToRead:
+                return "To Read";
+            case PersonalLibraryManager.Models.ReadingStatus.Reading:
+                return "Reading";
+            case PersonalLibraryManager.Models.ReadingStatus.Completed:
+                return "Completed";
+            default:
+                return "";
+        }
+    }
+
+    string GetStatusButtonClass(PersonalLibraryManager.Models.ReadingStatus status)
+    {
+        switch (status)
+        {
+            case PersonalLibraryManager.Models.ReadingStatus.ToRead:
+                return "btn-info";
+            case PersonalLibraryManager.Models.ReadingStatus.Reading:
+                return "btn-warning";
+            case PersonalLibraryManager.Models.ReadingStatus.Completed:
+                return "btn-success";
+            default:
+                return "btn-default";
+        }
+    }
+}

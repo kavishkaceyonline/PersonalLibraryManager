@@ -14,20 +14,21 @@
             var displayName = user != null ? user.FullName : User.Identity.GetUserName();
         
 
-        <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-                @Html.ActionLink("My Library", "Index", "Books", null, new { @class = "nav-link" })
-            </li>
-            <li class="nav-item">
-                @Html.ActionLink(@displayName, "Index", "Manage", null, new { @class = "nav-link" })
-            </li>
-            
-            <li class="nav-item">
-                <a href="javascript:document.getElementById('logoutForm').submit()" class="nav-link text-danger">
-                    Log off
-                </a>
-            </li>
-        </ul>
+<ul class="navbar-nav ms-auto">
+    <li>@Html.ActionLink("Dashboard", "Dashboard", "Books")</li>
+    <li class="nav-item">
+        @Html.ActionLink("My Library", "Index", "Books", null, new { @class = "nav-link" })
+    </li>
+    <li class="nav-item">
+        @Html.ActionLink(@displayName, "Index", "Manage", null, new { @class = "nav-link" })
+    </li>
+
+    <li class="nav-item">
+        <a href="javascript:document.getElementById('logoutForm').submit()" class="nav-link text-danger">
+            Log off
+        </a>
+    </li>
+</ul>
     }
 }
 else

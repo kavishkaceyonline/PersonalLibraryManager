@@ -21,13 +21,37 @@ namespace PersonalLibraryManager.Controllers
 
 
         // GET: Books
-        public ActionResult Index()
+        public ActionResult Index(string status = "", string search = "")
         {
             var userId = User.Identity.GetUserId();
-            var books = _context.Books
-                .Where(b => b.UserId == userId)
-                .OrderByDescending(b => b.DateAdded)
-                .ToList();
+
+            // Get all books for user
+            var query = _context.Books.Where(b => b.UserId == userId);
+
+            // Filter by status if provided
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (Enum.TryParse<ReadingStatus>(status, out var statusEnum))
+                {
+                    query = query.Where(b => b.Status == statusEnum);
+                }
+            }
+
+            // Search by title or author
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(b => b.Title.Contains(search) || b.Author.Contains(search));
+            }
+
+            var books = query.OrderByDescending(b => b.DateAdded).ToList();
+
+            // Calculate statistics
+            ViewBag.TotalBooks = _context.Books.Count(b => b.UserId == userId);
+            ViewBag.ToReadCount = _context.Books.Count(b => b.UserId == userId && b.Status == ReadingStatus.ToRead);
+            ViewBag.ReadingCount = _context.Books.Count(b => b.UserId == userId && b.Status == ReadingStatus.Reading);
+            ViewBag.CompletedCount = _context.Books.Count(b => b.UserId == userId && b.Status == ReadingStatus.Completed);
+            ViewBag.CurrentFilter = status;
+            ViewBag.CurrentSearch = search;
 
             return View(books);
         }
@@ -198,6 +222,86 @@ namespace PersonalLibraryManager.Controllers
 
             return RedirectToAction("Index");
         }
+
+        // POST: Books/MarkAsCompleted/5
+        [HttpPost]
+        public ActionResult MarkAsCompleted(int id)
+        {
+            var userId = User.Identity.GetUserId();
+            var book = _context.Books
+                .SingleOrDefault(b => b.Id == id && b.UserId == userId);
+
+            if (book == null)
+            {
+                return HttpNotFound();
+            }
+
+            book.Status = ReadingStatus.Completed;
+            book.DateCompleted = DateTime.Now;
+
+            _context.SaveChanges();
+
+            return RedirectToAction("Index");
+        }
+
+        // POST: Books/UpdateStatus/5
+        [HttpPost]
+        public ActionResult UpdateStatus(int id, ReadingStatus status)
+        {
+            var userId = User.Identity.GetUserId();
+            var book = _context.Books
+                .SingleOrDefault(b => b.Id == id && b.UserId == userId);
+
+            if (book == null)
+            {
+                return HttpNotFound();
+            }
+
+            book.Status = status;
+
+            if (status == ReadingStatus.Completed && !book.DateCompleted.HasValue)
+            {
+                book.DateCompleted = DateTime.Now;
+            }
+            else if (status != ReadingStatus.Completed)
+            {
+                book.DateCompleted = null;
+            }
+
+            _context.SaveChanges();
+
+            return RedirectToAction("Index");
+        }
+
+        // GET: Books/Dashboard
+        public ActionResult Dashboard()
+        {
+            var userId = User.Identity.GetUserId();
+
+            // Calculate statistics
+            ViewBag.TotalBooks = _context.Books.Count(b => b.UserId == userId);
+            ViewBag.ToReadCount = _context.Books.Count(b => b.UserId == userId && b.Status == ReadingStatus.ToRead);
+            ViewBag.ReadingCount = _context.Books.Count(b => b.UserId == userId && b.Status == ReadingStatus.Reading);
+            ViewBag.CompletedCount = _context.Books.Count(b => b.UserId == userId && b.Status == ReadingStatus.Completed);
+
+            // Get recent books (last 5)
+            ViewBag.RecentBooks = _context.Books
+                .Where(b => b.UserId == userId)
+                .OrderByDescending(b => b.DateAdded)
+                .Take(5)
+                .ToList();
+
+            // Get top rated books
+            ViewBag.TopRatedBooks = _context.Books
+                .Where(b => b.UserId == userId && b.Rating.HasValue)
+                .OrderByDescending(b => b.Rating)
+                .ThenBy(b => b.Title)
+                .Take(5)
+                .ToList();
+
+            return View();
+        }
+
 
         protected override void Dispose(bool disposing)
         {
